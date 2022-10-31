@@ -6,67 +6,66 @@ int RegKeyValueAdd(HKEY,LPCSTR);
 int main()
 {	
 	if (IsUserAnAdmin()) //Admin Control
-		cout << RegKeyValueAdd(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run #Memet@Karul");
-	
+		RegKeyValueAdd(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run #Memet @Karul");
 	else {
-		cout << "ADMIN DEGIL" << endl;
+		//we run the program with ShellExecuteExA as administrator.
 		char  path[MAX_PATH];
 		GetModuleFileNameA(NULL, path, MAX_PATH);
-		cout << "path." << path << endl;
+
 		SHELLEXECUTEINFOA  pExecInfo = { sizeof(pExecInfo) };
-		//pExecInfo.fMask = SEE_MASK_DEFAULT ;
 		pExecInfo.lpVerb = "runas";
-		pExecInfo.lpFile = path;//  GetCommandLineA();    
+		pExecInfo.lpFile = path;   
 		pExecInfo.hwnd = NULL;
 		pExecInfo.nShow = SW_NORMAL;
 
 		auto DShelError = ShellExecuteExA(&pExecInfo);
-		DWORD dwError = GetLastError();
-		cout << "error." << dwError << endl;
 		if (!DShelError) {
-			cout << "ERROR. " << GetLastError << endl;
-			DWORD dwError = GetLastError();
-			if (dwError == ERROR_CANCELLED)
-				cout << "ERROR. " << dwError << endl;
-				return -1;
+			cout << "ShellExecuteExA." << GetLastError() << endl;
 		}
 	}
+	return 0;
 }
-
 int  RegKeyValueAdd(HKEY hKey,LPCSTR  pathKeyValue) {
 	//Format -> Template_1\\Template_2 #Memet@Karul
+	string  _pathKeyValue;
+	
+	for (int i = 0; i < strlen(pathKeyValue);i++) {//pathKeyValue space clear; //boşluk olduğunda hatalı dosya işlemi yapıyor.
+		if ((char)pathKeyValue[i]!= 32) {
+			_pathKeyValue += pathKeyValue[i];
+		}
+	}
 	int i=0;
 	string sPath;
 	string sKey;
 	string sValue;
-	for (; i < strlen(pathKeyValue);i++) {
-		if (pathKeyValue[i] == '#') break;
-		sPath += pathKeyValue[i];
+	for (; i < _pathKeyValue.length(); i++) {
+		if (_pathKeyValue[i] == '#') break;
+		sPath += _pathKeyValue[i];
 	}
 	int j = i + 1;
-	for (; j < strlen(pathKeyValue); j++) {
-		if (pathKeyValue[j] == '@') break;
-		sKey += pathKeyValue[j];
+	for (; j < _pathKeyValue.length(); j++) {
+		if (_pathKeyValue[j] == '@') break;
+		sKey += _pathKeyValue[j];
 	}
 	int k = j+1;
-	for (; k < strlen(pathKeyValue); k++) {
-		sValue += pathKeyValue[k];
+	for (; k < _pathKeyValue.length(); k++) {
+		sValue += _pathKeyValue[k];
 	}
 	cout << "path  : " << sPath << endl;
 	cout << "Key   : " << sKey << endl;
 	cout << "Value : " << sValue << endl;
+
 	HKEY hkRegOpen;
 	DWORD dRegReturn;
-	LONG res1 = RegCreateKeyExA(hKey, sPath.c_str(), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, NULL, &hkRegOpen, &dRegReturn);
-	if (res1!=0) {
-		RegCloseKey(hkRegOpen);
+	sPath = sPath + "\0";
+	LONG res1 = RegCreateKeyExA(hKey, sPath.c_str(), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS , NULL, &hkRegOpen, &dRegReturn);
+	cout <<"res1."<< res1 << endl;
+	if (res1!= ERROR_SUCCESS) 
 		return res1;
-	}
-	LONG res2=RegSetValueExA(hkRegOpen, sKey.c_str(), 0, REG_SZ, (LPBYTE)sValue.c_str(), strlen((char*)sValue.c_str()) + 1);
-	if (res2 != 0) {
-		RegCloseKey(hkRegOpen);
+	LONG res2=RegSetValueExA(hkRegOpen, (LPCSTR)sKey.c_str(), 0, REG_SZ, (LPBYTE)sValue.c_str(), strlen((char*)sValue.c_str()) + 1);
+	cout << "res2."<<res2 << endl;
+	if (res2 != ERROR_SUCCESS) 
 		return res2;
-	}
 	RegCloseKey(hkRegOpen);
 	return 0;
 }
