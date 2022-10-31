@@ -3,71 +3,34 @@
 #include <Shlobj_core.h>
 using namespace std;
 int RegKeyValueAdd(HKEY,LPCSTR);
-bool isUserAdmin() {
-	bool adminActive = false;
-	HANDLE  ProcessHandle={};
-	TOKEN_ELEVATION Tuser;
-	DWORD Dsize;
-	if (!IsUserAnAdmin()) {
-		if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &ProcessHandle)) {
-			if (GetTokenInformation(ProcessHandle, TokenElevation, &Tuser, sizeof(Tuser), &Dsize)) {
-				adminActive = Tuser.TokenIsElevated;
-			}
-		}
-	}
-	CloseHandle(ProcessHandle);
-	return adminActive;
-}
-
 int main()
-{
-	
-
-
-	
-	
-	if (IsUserAnAdmin()) {
-		cout << "ADMIN ";
+{	
+	if (IsUserAnAdmin()) //Admin Control
 		cout << RegKeyValueAdd(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run #Memet@Karul");
-	}
+	
 	else {
-		cout << "ADMIN DEGIL"<<endl;
-		char buffer[MAX_PATH];
-		GetModuleFileNameA(NULL, buffer, MAX_PATH);
-		cout << "path." << buffer << endl;
-		SHELLEXECUTEINFOA pExecInfo = {sizeof(pExecInfo)};
+		cout << "ADMIN DEGIL" << endl;
+		char  path[MAX_PATH];
+		GetModuleFileNameA(NULL, path, MAX_PATH);
+		cout << "path." << path << endl;
+		SHELLEXECUTEINFOA  pExecInfo = { sizeof(pExecInfo) };
 		//pExecInfo.fMask = SEE_MASK_DEFAULT ;
-		pExecInfo.lpVerb = (LPCSTR)"runas";
-		pExecInfo.lpFile = buffer;//  GetCommandLineA();
+		pExecInfo.lpVerb = "runas";
+		pExecInfo.lpFile = path;//  GetCommandLineA();    
 		pExecInfo.hwnd = NULL;
 		pExecInfo.nShow = SW_NORMAL;
 
 		auto DShelError = ShellExecuteExA(&pExecInfo);
 		DWORD dwError = GetLastError();
-		cout << "error."<<dwError<<endl;
-
+		cout << "error." << dwError << endl;
 		if (!DShelError) {
 			cout << "ERROR. " << GetLastError << endl;
 			DWORD dwError = GetLastError();
 			if (dwError == ERROR_CANCELLED)
 				cout << "ERROR. " << dwError << endl;
-			return -1;
-		}
-		else {
-			if (IsUserAnAdmin()) 
-				 cout << "ADMIN 1" << endl;
-			else 
-				cout << "ADMIN DEHIL 1" << endl;
-			
-			cout << RegKeyValueAdd(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run #Memet@Karul");
+				return -1;
 		}
 	}
-
-	
-	//cout<<RegKeyValueAdd(HKEY_CURRENT_USER,"Template_1\\Template_2 #Memet@Karul");
-	//cout<<RegKeyValueAdd(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run #Memet@Karul");
-	//SOFTWARE\Microsoft\Windows\CurrentVersion\Run
-
 }
 
 int  RegKeyValueAdd(HKEY hKey,LPCSTR  pathKeyValue) {
