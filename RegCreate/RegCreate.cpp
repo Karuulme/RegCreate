@@ -24,27 +24,46 @@ int main()
 	
 
 
-	if (isUserAdmin()) {
+	
+	
+	if (IsUserAnAdmin()) {
 		cout << "ADMIN ";
+		cout << RegKeyValueAdd(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run #Memet@Karul");
 	}
 	else {
-		
-		DWORD     cbSize;
+		cout << "ADMIN DEGIL"<<endl;
+		char buffer[MAX_PATH];
+		GetModuleFileNameA(NULL, buffer, MAX_PATH);
+		cout << "path." << buffer << endl;
 		SHELLEXECUTEINFOA pExecInfo = {sizeof(pExecInfo)};
-		LPCSTR path = "runas";
-		//pExecInfo->fMask = SEE_MASK_NO_CONSOLE;
-		pExecInfo.lpVerb = path;
-		pExecInfo.lpFile = "RegCreate.exe";// GetCommandLineA();
+		//pExecInfo.fMask = SEE_MASK_DEFAULT ;
+		pExecInfo.lpVerb = (LPCSTR)"runas";
+		pExecInfo.lpFile = buffer;//  GetCommandLineA();
 		pExecInfo.hwnd = NULL;
 		pExecInfo.nShow = SW_NORMAL;
-		if (ShellExecuteExA(&pExecInfo))
-			cout << "Basarili +"<<endl;
-		else cout << "Basarisiz -" << endl;
-		cout << GetLastError();
-	}
-	
-	//cout << RegKeyValueAdd(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run #Memet@Karul");
 
+		auto DShelError = ShellExecuteExA(&pExecInfo);
+		DWORD dwError = GetLastError();
+		cout << "error."<<dwError<<endl;
+
+		if (!DShelError) {
+			cout << "ERROR. " << GetLastError << endl;
+			DWORD dwError = GetLastError();
+			if (dwError == ERROR_CANCELLED)
+				cout << "ERROR. " << dwError << endl;
+			return -1;
+		}
+		else {
+			if (IsUserAnAdmin()) 
+				 cout << "ADMIN 1" << endl;
+			else 
+				cout << "ADMIN DEHIL 1" << endl;
+			
+			cout << RegKeyValueAdd(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run #Memet@Karul");
+		}
+	}
+
+	
 	//cout<<RegKeyValueAdd(HKEY_CURRENT_USER,"Template_1\\Template_2 #Memet@Karul");
 	//cout<<RegKeyValueAdd(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run #Memet@Karul");
 	//SOFTWARE\Microsoft\Windows\CurrentVersion\Run
@@ -70,20 +89,17 @@ int  RegKeyValueAdd(HKEY hKey,LPCSTR  pathKeyValue) {
 	for (; k < strlen(pathKeyValue); k++) {
 		sValue += pathKeyValue[k];
 	}
-	LPCSTR path =sPath.c_str();
-	LPCSTR Key = sKey.c_str();
-	LPCSTR Value = sValue.c_str();
-	cout << "path  : " << path << endl;
-	cout << "Key   : " << Key << endl;
-	cout << "Value : " << Value << endl;
+	cout << "path  : " << sPath << endl;
+	cout << "Key   : " << sKey << endl;
+	cout << "Value : " << sValue << endl;
 	HKEY hkRegOpen;
 	DWORD dRegReturn;
-	LONG res1 = RegCreateKeyExA(hKey, path, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, NULL, &hkRegOpen, &dRegReturn);
+	LONG res1 = RegCreateKeyExA(hKey, sPath.c_str(), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, NULL, &hkRegOpen, &dRegReturn);
 	if (res1!=0) {
 		RegCloseKey(hkRegOpen);
 		return res1;
 	}
-	LONG res2=RegSetValueExA(hkRegOpen, Key, 0, REG_SZ, (LPBYTE)Value, strlen((char*)Value) + 1);
+	LONG res2=RegSetValueExA(hkRegOpen, sKey.c_str(), 0, REG_SZ, (LPBYTE)sValue.c_str(), strlen((char*)sValue.c_str()) + 1);
 	if (res2 != 0) {
 		RegCloseKey(hkRegOpen);
 		return res2;
@@ -99,8 +115,6 @@ https://learn.microsoft.com/en-us/windows/win32/com/the-com-elevation-moniker?re
 
 
 
-ADMİN MİYİZ					
-yönetici olarak çalıştırma  
 
 fotoğrafları şfireleme
 
