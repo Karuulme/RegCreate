@@ -70,19 +70,3 @@ int  RegKeyValueAdd(HKEY hKey,LPCSTR  pathKeyValue) {
 	return 0;
 }
 
-
-/*
-***RESOURCES***
-https://learn.microsoft.com/en-us/windows/win32/com/the-com-elevation-moniker?redirectedfrom=MSDN
-
-
-
-
-fotoğrafları şfireleme
-
-
-OpenProcessToken
-GetTokenInformation
-
-*/
-
